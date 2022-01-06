@@ -14,11 +14,8 @@ var _EXCLUDE_ON_EDGES = true;
 var _MERGE_SPOTS = true;
 var _MIN_COVERAGE = 25;
 var _DISPLAY_SCALE_SPACE = false;
-var _CHANNEL = 2; 
+var _CHANNEL = 2;
 var _Sigma_Multiplicative_Factor = 5;
-var Stack_Slice_Spots_X_Array = newArray();
-var Stack_Slice_Spots_Y_Array = newArray();
-		
 var helpURL = "https://github.com/MontpellierRessourcesImagerie/imagej_macros_and_scripts/wiki/Multi_Scale_Spot_Detection_And_Noise_Elimination";
 
 /****************************************************************************************************************************************************/
@@ -47,22 +44,9 @@ macro "multiScale Spot Detection (f5) Action Tool-C000T4b12M" {
 		exit("Error Message : No Image tif File Or Only One Image is Supported");
 	}
 	// images without or with preprocessing 
-	waitForUser("before createScaleSpace");
 	open(image_name[0]);
-	waitForUser("before createScaleSpace");
 	createScaleSpace();
-	// findAndLinkScaleSpaceSpots();
-
-	Stack_Slice_Spots_X_Array = newArray();
-	Stack_Slice_Spots_Y_Array) = newArray();
-	waitForUser("findAndLinkScaleSpaceSpots");
-	
-	findAndLinkScaleSpaceSpots(Stack_Slice_Spots_X_Array,Stack_Slice_Spots_Y_Array);
-	waitForUser("av Print Array");
-	Array.print(Stack_Slice_Spots_X_Array);
-	Array.print(Stack_Slice_Spots_Y_Array);
-	print("Done");
-
+	findAndLinkScaleSpaceSpots();
 }
 
 macro "Visualize Scale Spot Detection Help (f4) Action Tool-C000T4b12?" {
@@ -113,44 +97,28 @@ function createScaleSpace(){
 	return sigmas;
 }
 
-function findAndLinkScaleSpaceSpots(Stack_Slice_Spots_X_Array,Stack_Slice_Spots_Y_Array){
+function findAndLinkScaleSpaceSpots(){
 	run("Set Measurements...", "area mean standard modal min centroid center bounding feret's integrated median skewness kurtosis stack display redirect=None decimal=9");
 	roiManager("reset");
 	run("Clear Results");
 	sigmas = newArray(nSlices);
 	Stack_Slice_Array = newArray(nSlices);
-	
-	Stack_Slice_Spots_X_Array = newArray(nSlices);
-	Stack_Slice_Spots_Y_Array = newArray(nSlices);
-	
-	
 	for (i = 1; i <= nSlices; i++) {
 		sigma = _SIGMA_START + _Sigma_Multiplicative_Factor*(i-1) * _SIGMA_DELTA;
 		radius = sigma*_SSF;
 		Stack.setSlice(i);
 		Stack_Slice_Array[i] = getImageID();
-		
 		run("Find Maxima...", "prominence="+_MAXIMA_PROMINENCE+" exclude light output=[Point Selection]");
 		getSelectionCoordinates(xpoints, ypoints);
-		
-		Stack_Slice_Spot_Array_X[i]= newArray(xpoints.length);
-		Stack_Slice_Spot_Array_Y[i]= newArray(ypoints.length);
-		
 		roiManager("show all without labels");
 		for (j = 0; j < xpoints.length; j++) {
 			makePoint(xpoints[j],ypoints[j],"large red cross");
-			
 			run("Colors...", "foreground=black background=white selection=red");
 			roiManager("add");
-			
-			Stack_Slice_Spot_Array_X[i][j] = xpoints[j];
-			Stack_Slice_Spot_Array_Y[i][j] = ypoints[j];
-			
 		}
 		run("Select None");
 	}
 	roiManager("measure");	
-	return Stack_Slice_Spot_Array_X,Stack_Slice_Spot_Array_Y;
 }
 
 function filterImageFiles(list, dir, extension) {
@@ -289,16 +257,5 @@ image_name = filterImageFiles(files, dir, _FILE_EXTENSION);
 if (image_name.length < 1) || (image_name.length > 1 ) {
 	exit("Error message: only one image is supported in the images_tiff directory");
 }
-
-waitForUser("findAndLinkScaleSpaceSpots");
 createScaleSpace();
-Stack_Slice_Spots_X_Array = newArray();
-Stack_Slice_Spots_Y_Array) = newArray();
-waitForUser("findAndLinkScaleSpaceSpots");
-findAndLinkScaleSpaceSpots(Stack_Slice_Spots_X_Array,Stack_Slice_Spots_Y_Array);
-waitForUser("av Print Array");
-Array.print(Stack_Slice_Spots_X_Array);
-Array.print(Stack_Slice_Spots_Y_Array);
-print("Done");
-
 findAndLinkScaleSpaceSpots();
